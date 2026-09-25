@@ -46,7 +46,9 @@ function createWindow() {
   win.removeMenu();
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', (e) => e.preventDefault());
-  win.loadFile(path.join(__dirname, 'renderer', 'index.html'), startView ? { query: { view: startView } } : undefined);
+  // screenshot runs are silent (no music) and leave the player's settings alone
+  const query = { ...(startView ? { view: startView } : {}), ...(screenshot ? { quiet: '1' } : {}) };
+  win.loadFile(path.join(__dirname, 'renderer', 'index.html'), Object.keys(query).length ? { query } : undefined);
   if (screenshot) {
     // `npm run shot`: render off-screen, save a PNG, quit (used to preview the design).
     win.webContents.once('did-finish-load', () => setTimeout(async () => {

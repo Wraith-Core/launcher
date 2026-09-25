@@ -1,7 +1,7 @@
 {
   "name": "wraith-launcher",
   "productName": "Wraith Core",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Wraith Core launcher: latest updates, Discord and one-click join",
   "author": "Wraith Core",
   "main": "main.js",
@@ -58,9 +58,6 @@
     ]
   },
   "devDependencies": {
-    "@fontsource/ibm-plex-sans-arabic": "^5.3.0",
-    "@fontsource/lalezar": "^5.3.0",
-    "@fontsource/rye": "^5.3.0",
     "electron": "^44.4.5",
     "electron-builder": "^26.15.3"
   },
