@@ -1,7 +1,7 @@
 {
   "name": "wraith-launcher",
   "productName": "Wraith Core",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Wraith Core launcher: latest updates, Discord and one-click join",
   "author": "Wraith Core",
   "main": "main.js",
@@ -20,7 +20,8 @@
       "preload.js",
       "renderer/**",
       "assets/**",
-      "build/icon.ico"
+      "build/icon.ico",
+      "!build/*.cer"
     ],
     "directories": {
       "output": "dist"
@@ -30,7 +31,16 @@
       "target": [
         "nsis",
         "portable"
-      ]
+      ],
+      "signtoolOptions": {
+        "certificateSha1": "6529C1D352A5AE451AD46FC52797D72C439ADBDB",
+        "signingHashAlgorithms": [
+          "sha256"
+        ],
+        "rfc3161TimeStampServer": "http://timestamp.digicert.com",
+        "publisherName": "Wraith Core"
+      },
+      "verifyUpdateCodeSignature": false
     },
     "nsis": {
       "oneClick": true,

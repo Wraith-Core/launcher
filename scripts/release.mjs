@@ -26,7 +26,8 @@ if (exists) {
 fs.rmSync('dist', { recursive: true, force: true });
 run('npx', ['electron-builder', '--win', '--publish', 'never']);
 
-const assets = ['dist/WraithCore-Setup.exe', 'dist/WraithCore-Setup.exe.blockmap', 'dist/latest.yml', 'dist/WraithCore-Portable.exe'];
+// The certificate installer ships with every release: players run it once so Windows trusts the signature.
+const assets = ['dist/WraithCore-Setup.exe', 'dist/WraithCore-Setup.exe.blockmap', 'dist/latest.yml', 'dist/WraithCore-Portable.exe', 'build/WraithCore-Certificate.bat', 'build/WraithCore-CodeSigning.cer'];
 for (const a of assets) if (!fs.existsSync(a)) throw new Error(`missing build output: ${a}`);
 run('gh', ['release', 'create', tag, ...assets, '--repo', 'Wraith-Core/launcher', '--title', `Wraith Core Launcher ${tag}`, '--notes', notes]);
 console.log(`\nReleased ${tag}: https://github.com/Wraith-Core/launcher/releases/tag/${tag}`);
