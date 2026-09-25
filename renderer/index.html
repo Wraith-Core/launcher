@@ -7,59 +7,189 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="titlebar">
-    <div class="brand">
-      <img id="title-logo" src="../assets/logo.png" alt="">
-      <span>Wraith Core</span>
-    </div>
-    <div class="window-buttons">
-      <button id="win-min" title="تصغير" aria-label="تصغير"><svg viewBox="0 0 12 12"><path d="M2 6h8"/></svg></button>
-      <button id="win-close" class="close" title="إغلاق" aria-label="إغلاق"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
-    </div>
-  </header>
+  <div class="app">
 
-  <main>
-    <section class="hero" id="hero">
-      <div class="hero-shade"></div>
-      <div class="hero-content">
-        <div class="identity">
-          <img id="logo" class="logo" src="../assets/logo.png" alt="">
-          <div>
-            <h1 id="server-name">Wraith Core</h1>
-            <div id="status" class="status checking">
-              <span class="dot"></span>
-              <span id="status-text">جاري فحص السيرفر…</span>
-            </div>
+    <!-- ===== navigation (right) ===== -->
+    <nav class="nav">
+      <img id="nav-logo" class="nav-logo" src="../assets/logo.png" alt="Wraith Core">
+      <div class="nav-items">
+        <button class="nav-btn active" data-view="home" title="الرئيسية">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+        </button>
+        <button class="nav-btn" data-view="updates" title="التحديثات">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 0 1 2 2v15l-3-2-3 2-3-2-3 2V5a2 2 0 0 1 2-2z"/><path d="M9 8h6M9 12h6"/></svg>
+          <span id="nav-badge" class="nav-badge" hidden></span>
+        </button>
+        <button class="nav-btn" data-view="players" title="اللاعبين">
+          <svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M16.5 14.2c2.6.3 4.5 2.4 4.5 5"/></svg>
+        </button>
+        <button class="nav-btn" data-link="discord" id="nav-discord" title="الدسكورد" hidden>
+          <svg class="ic fill" viewBox="0 0 24 24"><path d="M19.3 5.3A16.6 16.6 0 0 0 15.2 4l-.5 1a15.4 15.4 0 0 0-5.4 0l-.5-1a16.6 16.6 0 0 0-4.1 1.3C2.1 9.2 1.4 13 1.7 16.7a16.7 16.7 0 0 0 5 2.5l1.1-1.7a10.7 10.7 0 0 1-1.7-.8l.4-.3a11.9 11.9 0 0 0 11 0l.4.3c-.5.3-1.1.6-1.7.8l1.1 1.7a16.6 16.6 0 0 0 5-2.5c.4-4.3-.7-8-3-11.4ZM8.7 14.4c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Zm6.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Z"/></svg>
+        </button>
+        <button class="nav-btn" data-link="website" id="nav-website" title="الموقع" hidden>
+          <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/></svg>
+        </button>
+      </div>
+      <button class="nav-play" id="nav-play" title="دخول السيرفر">
+        <svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>
+      </button>
+    </nav>
+
+    <!-- ===== main column ===== -->
+    <div class="main">
+      <header class="topbar">
+        <div class="greeting"><span id="greet">مساء الخير</span>، أهلاً بك في <b id="greet-name">Wraith Core</b></div>
+        <label class="search">
+          <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+          <input id="search" type="search" placeholder="ابحث في التحديثات…" autocomplete="off" spellcheck="false">
+        </label>
+        <div class="top-actions">
+          <button class="icon-btn" id="bell" title="تحديثات جديدة">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 1 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>
+            <span id="bell-dot" class="dot-badge" hidden></span>
+          </button>
+          <div class="win-btns">
+            <button id="win-min" title="تصغير"><svg viewBox="0 0 12 12"><path d="M2 6h8"/></svg></button>
+            <button id="win-close" class="close" title="إغلاق"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
           </div>
         </div>
-        <div class="actions">
-          <button id="play" class="btn primary">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
-            <span id="play-text">دخول السيرفر</span>
+      </header>
+
+      <!-- ===== home ===== -->
+      <section class="view home active" id="view-home">
+        <article class="hero panel">
+          <img id="hero-art" class="hero-art" src="art/hero.svg" alt="">
+          <div class="hero-shade"></div>
+          <div class="hero-body">
+            <div class="tags">
+              <span id="hero-status" class="tag status-tag checking"><i></i><span>جاري الفحص…</span></span>
+              <span class="tag">RedM</span>
+              <span class="tag">رول بلاي عربي</span>
+            </div>
+            <h1 class="hero-title" id="hero-title">WRAITH<br>CORE</h1>
+            <p class="hero-tagline" id="hero-tagline">سيرفر رول بلاي عربي على RedM</p>
+            <div class="crowd">
+              <div class="stack" id="crowd-stack"></div>
+              <span class="crowd-pill" id="crowd-pill">لا أحد داخل الحين</span>
+            </div>
+          </div>
+          <div class="hero-cta">
+            <button class="btn-play" id="play">
+              <svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>
+              <span id="play-text">ادخل السيرفر</span>
+            </button>
+            <button class="btn-round" id="hero-discord" title="الدسكورد" hidden>
+              <svg viewBox="0 0 24 24"><path d="M19.3 5.3A16.6 16.6 0 0 0 15.2 4l-.5 1a15.4 15.4 0 0 0-5.4 0l-.5-1a16.6 16.6 0 0 0-4.1 1.3C2.1 9.2 1.4 13 1.7 16.7a16.7 16.7 0 0 0 5 2.5l1.1-1.7a10.7 10.7 0 0 1-1.7-.8l.4-.3a11.9 11.9 0 0 0 11 0l.4.3c-.5.3-1.1.6-1.7.8l1.1 1.7a16.6 16.6 0 0 0 5-2.5c.4-4.3-.7-8-3-11.4ZM8.7 14.4c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Zm6.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Z"/></svg>
+            </button>
+          </div>
+        </article>
+
+        <div class="quick">
+          <button class="qcard" id="q-join">
+            <span class="thumb thumb-logo"><img id="q-logo" src="../assets/logo.png" alt=""></span>
+            <span class="qtext"><b>ادخل السيرفر</b><small id="q-join-code">cfx.re/join</small></span>
+            <svg class="chev" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
           </button>
-          <button id="discord" class="btn ghost" hidden>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.3 5.3A16.6 16.6 0 0 0 15.2 4l-.5 1a15.4 15.4 0 0 0-5.4 0l-.5-1a16.6 16.6 0 0 0-4.1 1.3C2.1 9.2 1.4 13 1.7 16.7a16.7 16.7 0 0 0 5 2.5l1.1-1.7a10.7 10.7 0 0 1-1.7-.8l.4-.3a11.9 11.9 0 0 0 11 0l.4.3c-.5.3-1.1.6-1.7.8l1.1 1.7a16.6 16.6 0 0 0 5-2.5c.4-4.3-.7-8-3-11.4ZM8.7 14.4c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Zm6.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Z"/></svg>
-            <span>الدسكورد</span>
+          <button class="qcard" id="q-discord">
+            <span class="thumb thumb-discord"><svg viewBox="0 0 24 24"><path d="M19.3 5.3A16.6 16.6 0 0 0 15.2 4l-.5 1a15.4 15.4 0 0 0-5.4 0l-.5-1a16.6 16.6 0 0 0-4.1 1.3C2.1 9.2 1.4 13 1.7 16.7a16.7 16.7 0 0 0 5 2.5l1.1-1.7a10.7 10.7 0 0 1-1.7-.8l.4-.3a11.9 11.9 0 0 0 11 0l.4.3c-.5.3-1.1.6-1.7.8l1.1 1.7a16.6 16.6 0 0 0 5-2.5c.4-4.3-.7-8-3-11.4ZM8.7 14.4c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Zm6.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Z"/></svg></span>
+            <span class="qtext"><b>الدسكورد</b><small>انضم لمجتمع السيرفر</small></span>
+            <svg class="chev" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <button class="qcard" id="q-latest">
+            <span class="thumb"><img src="art/scene-night.svg" alt=""></span>
+            <span class="qtext"><b id="q-latest-title">آخر تحديث</b><small id="q-latest-sub">…</small></span>
+            <svg class="chev" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
           </button>
         </div>
-      </div>
-    </section>
 
-    <section class="feed">
-      <div class="feed-head">
-        <h2>آخر التحديثات</h2>
-        <span id="offline" class="offline" hidden>تعذّر الاتصال بالسيرفر، هذه آخر نسخة محفوظة</span>
-      </div>
-      <div id="updates" class="updates">
-        <p class="empty">جاري تحميل التحديثات…</p>
-      </div>
-    </section>
-  </main>
+        <section class="activities">
+          <div class="sec-head"><h2>آخر التحديثات</h2><button class="link" data-goto="updates">عرض الكل</button></div>
+          <div class="acards" id="acards"><div class="empty-card">جاري تحميل التحديثات…</div></div>
+        </section>
 
-  <footer class="footer">
-    <span id="join-code"></span>
-    <span id="version"></span>
-  </footer>
+        <aside class="stats panel">
+          <div class="sec-head"><h2>حالة السيرفر</h2><button class="icon-btn small" id="refresh" title="تحديث"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v4h-4"/></svg></button></div>
+          <div class="ring-wrap"><div class="ring">
+            <svg viewBox="0 0 200 200">
+              <defs>
+                <linearGradient id="ring-grad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#ff6a3d"/>
+                  <stop offset="1" stop-color="#d9261c"/>
+                </linearGradient>
+              </defs>
+              <circle class="ring-track" cx="100" cy="100" r="84"/>
+              <circle class="ring-fill" id="ring-fill" cx="100" cy="100" r="84"/>
+            </svg>
+            <div class="ring-center">
+              <small>اللاعبين الآن</small>
+              <b id="ring-count">0</b>
+              <small id="ring-max">من 48</small>
+            </div>
+          </div></div>
+          <div class="stat-row">
+            <div class="stat">
+              <span class="stat-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M4.5 10.5a11 11 0 0 1 15 0"/><path d="M7.8 13.8a6.3 6.3 0 0 1 8.4 0"/><circle cx="12" cy="17.5" r="1.3"/></svg></span>
+              <b id="stat-ping">—</b><small>البنق</small>
+            </div>
+            <div class="stat">
+              <span class="stat-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 0 1 2 2v15l-3-2-3 2-3-2-3 2V5a2 2 0 0 1 2-2z"/><path d="M9 8h6M9 12h6"/></svg></span>
+              <b id="stat-updates">0</b><small>تحديث</small>
+            </div>
+            <div class="stat">
+              <span class="stat-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></span>
+              <b id="stat-state">—</b><small>الحالة</small>
+            </div>
+          </div>
+          <img class="town" src="art/town.svg" alt="">
+        </aside>
+
+        <section class="launchbar">
+          <div class="sec-head"><h2>جاهز للانطلاق</h2><button class="link" id="open-join-page">صفحة الانضمام</button></div>
+          <div class="lb panel">
+            <span class="lb-thumb"><img id="lb-banner" src="../assets/banner.jpg" alt=""></span>
+            <div class="lb-info">
+              <div class="lb-top"><b>RedM</b><small id="redm-state">جاري التحقق من اللعبة…</small></div>
+              <div class="progress"><i id="progress"></i></div>
+              <div class="lb-meta"><span id="lb-code">cfx.re/join</span><span id="lb-step">اضغط تشغيل للدخول</span></div>
+            </div>
+            <div class="lb-actions">
+              <button class="round red" id="lb-play" title="دخول السيرفر"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></button>
+              <button class="round light" id="lb-get" title="تحميل RedM" hidden><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ===== updates ===== -->
+      <section class="view list-view" id="view-updates">
+        <div class="view-head"><h2>كل التحديثات</h2><span id="search-note" class="muted"></span></div>
+        <div id="ulist" class="ulist"></div>
+      </section>
+
+      <!-- ===== players ===== -->
+      <section class="view list-view" id="view-players">
+        <div class="view-head"><h2>اللاعبين داخل السيرفر</h2><span id="players-note" class="muted"></span></div>
+        <div id="plist" class="plist"></div>
+      </section>
+    </div>
+
+    <!-- ===== online column (left) ===== -->
+    <aside class="people">
+      <div class="people-panel panel">
+        <div class="people-head" title="اللاعبين أونلاين">
+          <svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17.5" cy="9" r="2.5"/><path d="M16.5 14.2c2.6.3 4.5 2.4 4.5 5"/></svg>
+          <span id="people-count">0</span>
+        </div>
+        <div class="people-list" id="people-list"></div>
+      </div>
+      <div class="people-panel panel mini">
+        <button class="mini-btn" data-link="discord" id="mini-discord" title="الدسكورد" hidden>
+          <svg viewBox="0 0 24 24"><path d="M19.3 5.3A16.6 16.6 0 0 0 15.2 4l-.5 1a15.4 15.4 0 0 0-5.4 0l-.5-1a16.6 16.6 0 0 0-4.1 1.3C2.1 9.2 1.4 13 1.7 16.7a16.7 16.7 0 0 0 5 2.5l1.1-1.7a10.7 10.7 0 0 1-1.7-.8l.4-.3a11.9 11.9 0 0 0 11 0l.4.3c-.5.3-1.1.6-1.7.8l1.1 1.7a16.6 16.6 0 0 0 5-2.5c.4-4.3-.7-8-3-11.4ZM8.7 14.4c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Zm6.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Z"/></svg>
+        </button>
+        <span class="mini-ver" id="version"></span>
+      </div>
+    </aside>
+  </div>
 
   <div id="toast" class="toast" hidden>
     <span id="toast-text"></span>

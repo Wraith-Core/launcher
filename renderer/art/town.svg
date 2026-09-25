@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 160" preserveAspectRatio="xMidYMax slice">
+  <g fill="#000" opacity=".35">
+    <path d="M0 160 V120 H24 V104 H56 V120 H70 V160 Z"/>
+    <path d="M74 160 V112 H84 V96 L92 84 L100 96 V112 H110 V160 Z"/>
+    <path d="M114 160 V128 H136 L146 116 L156 128 H176 V160 Z"/>
+    <path d="M180 160 V74 H186 V64 H214 V74 H220 V160 Z M184 90 H216 V94 H184 Z"/>
+    <path d="M224 160 V118 H262 V160 Z"/>
+    <path d="M266 160 V100 H300 V92 H308 V100 H316 V160 Z"/>
+    <path d="M318 160 L324 60 H330 L336 160 Z M306 60 L348 60 L327 40 Z"/>
+    <path d="M350 160 V124 H400 V160 Z"/>
+  </g>
+</svg>

@@ -3,7 +3,10 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('wraith', {
   feed: () => ipcRenderer.invoke('feed'),
+  feedCached: () => ipcRenderer.invoke('feed-cached'),
   status: () => ipcRenderer.invoke('status'),
+  players: () => ipcRenderer.invoke('players'),
+  redm: () => ipcRenderer.invoke('redm'),
   image: (name) => ipcRenderer.invoke('image', name),
   version: () => ipcRenderer.invoke('version'),
   connect: () => ipcRenderer.invoke('connect'),

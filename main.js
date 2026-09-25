@@ -11,9 +11,13 @@ const path = require('node:path');
 const SERVER = 'http://37.221.94.8:30120';
 const FEED_URL = `${SERVER}/w_deploy/launcher.json`;
 const RELEASES = 'https://github.com/Wraith-Core/launcher/releases/latest';
-const IMAGES = { 'logo.png': 'image/png', 'banner.jpg': 'image/jpeg' };
+const IMAGES = { 'logo.png': 'image/png', 'banner.jpg': 'image/jpeg', 'hero.jpg': 'image/jpeg' };
 
 const screenshot = process.argv.find((a) => a.startsWith('--screenshot='))?.split('=')[1];
+const startView = process.argv.find((a) => a.startsWith('--view='))?.split('=')[1];
+// Sample players for design screenshots only (`--screenshot=... --mock`).
+const mock = Boolean(screenshot) && process.argv.includes('--mock');
+const MOCK = ['أبو فهد', 'Sheriff Cole', 'راكان', 'ذيب الصحراء', 'Doc Holliday', 'نايف', 'Maria', 'سعود', 'Ghost', 'حمد', 'Jesse', 'مشعل'];
 
 if (!screenshot && !app.requestSingleInstanceLock()) app.quit();
 
@@ -22,14 +26,14 @@ let feed = null;
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 1120,
-    height: 700,
-    minWidth: 960,
-    minHeight: 620,
+    width: 1320,
+    height: 820,
+    minWidth: 1200,
+    minHeight: 760,
     frame: false,
     show: false,
     paintWhenInitiallyHidden: true,
-    backgroundColor: '#0e0e0e',
+    backgroundColor: '#1a0808',
     title: 'Wraith Core',
     icon: path.join(__dirname, 'build', 'icon.ico'),
     webPreferences: {
@@ -42,13 +46,13 @@ function createWindow() {
   win.removeMenu();
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', (e) => e.preventDefault());
-  win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+  win.loadFile(path.join(__dirname, 'renderer', 'index.html'), startView ? { query: { view: startView } } : undefined);
   if (screenshot) {
     // `npm run shot`: render off-screen, save a PNG, quit (used to preview the design).
     win.webContents.once('did-finish-load', () => setTimeout(async () => {
       fs.writeFileSync(path.resolve(screenshot), (await win.webContents.capturePage()).toPNG());
       app.quit();
-    }, 4000));
+    }, 7000));
   } else {
     win.once('ready-to-show', () => win.show());
   }
@@ -93,6 +97,15 @@ async function getJson(url, ms) {
   return res.json();
 }
 
+// Last saved copy, returned instantly so the window is never empty while the server answers.
+ipcMain.handle('feed-cached', () => {
+  try {
+    return JSON.parse(fs.readFileSync(cacheFile(), 'utf8'));
+  } catch {
+    return null;
+  }
+});
+
 // Live feed when the server answers, otherwise the last copy we saw.
 ipcMain.handle('feed', async () => {
   try {
@@ -111,12 +124,29 @@ ipcMain.handle('feed', async () => {
 
 ipcMain.handle('status', async () => {
   try {
+    const started = Date.now();
     const d = await getJson(`${SERVER}/dynamic.json`, 5000);
-    return { online: true, players: Number(d.clients) || 0, max: Number(d.sv_maxclients) || 0 };
+    return { online: true, players: mock ? MOCK.length : Number(d.clients) || 0, max: Number(d.sv_maxclients) || 0, ping: Date.now() - started };
   } catch {
     return { online: false };
   }
 });
+
+// Who is in the server right now: names and ping only (identifiers never leave this process).
+ipcMain.handle('players', async () => {
+  if (mock) return MOCK.map((name, i) => ({ name, ping: 30 + ((i * 37) % 170) }));
+  try {
+    const list = await getJson(`${SERVER}/players.json`, 5000);
+    return list
+      .map((p) => ({ name: String(p.name || '').replace(/\^\d/g, '').slice(0, 32), ping: Number(p.ping) || 0 }))
+      .filter((p) => p.name)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  } catch {
+    return [];
+  }
+});
+
+ipcMain.handle('redm', () => redmInstalled());
 
 // Server images come through the main process as data URLs (the page itself has no network access).
 ipcMain.handle('image', async (_e, name) => {

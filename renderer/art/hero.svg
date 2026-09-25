@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a0606"/>
+      <stop offset=".32" stop-color="#4a0f0c"/>
+      <stop offset=".6" stop-color="#9a2416"/>
+      <stop offset=".8" stop-color="#dc5129"/>
+      <stop offset=".93" stop-color="#f59a4a"/>
+    </linearGradient>
+    <radialGradient id="sun" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#fff1c4"/>
+      <stop offset=".45" stop-color="#ffc26a"/>
+      <stop offset=".8" stop-color="#ff7a36"/>
+      <stop offset="1" stop-color="#ff5a2a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#ff9a4a" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#ff5a2a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="haze" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffb070" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ffb070" stop-opacity=".35"/>
+    </linearGradient>
+    <symbol id="rider" viewBox="0 0 64 50">
+      <ellipse cx="31" cy="25" rx="16" ry="7"/>
+      <path d="M42 22 L50 8 L55 6 L62 11 L60 14 L55 12 L49 25 Z"/>
+      <path d="M16 22 C11 24 9 30 10 36 L12 36 C12 31 14 27 18 25 Z"/>
+      <rect x="18" y="28" width="2.6" height="20" rx="1"/>
+      <rect x="23" y="29" width="2.6" height="19" rx="1"/>
+      <rect x="38" y="29" width="2.6" height="19" rx="1"/>
+      <rect x="43" y="28" width="2.6" height="20" rx="1"/>
+      <path d="M28 20 L30 9 C30.5 7.5 31.5 7 33 7 L35 7 C36.5 7 37.2 8 37 9.5 L36 18 L38 21 L35 22 L33.5 19 Z"/>
+      <circle cx="34" cy="4.8" r="2.4"/>
+      <path d="M28.5 3.6 H39.5 V5 H28.5 Z"/>
+      <path d="M31.5 3.8 L32 0.6 H36 L36.5 3.8 Z"/>
+    </symbol>
+    <symbol id="cactus" viewBox="0 0 40 90">
+      <rect x="16" y="0" width="9" height="90" rx="4.5"/>
+      <path d="M16 52 H9 C6 52 4 50 4 47 V30 C4 27.5 6 26 8 26 C10 26 12 27.5 12 30 V44 H16 Z"/>
+      <path d="M25 40 H31 C34 40 36 38 36 35 V20 C36 17.5 34 16 32 16 C30 16 28 17.5 28 20 V32 H25 Z"/>
+    </symbol>
+    <symbol id="windmill" viewBox="0 0 60 130">
+      <path d="M28 30 L17 130 H21 L30 42 L39 130 H43 L32 30 Z"/>
+      <path d="M21 72 H39 V75 H21 Z M19 98 H41 V101 H19 Z M24 52 H36 V55 H24 Z"/>
+      <circle cx="30" cy="26" r="4.5"/>
+      <g>
+        <path d="M30 26 L27.5 3 H32.5 Z"/>
+        <path d="M30 26 L27.5 3 H32.5 Z" transform="rotate(45 30 26)"/>
+        <path d="M30 26 L27.5 3 H32.5 Z" transform="rotate(90 30 26)"/>
+        <path d="M30 26 L27.5 3 H32.5 Z" transform="rotate(135 30 26)"/>
+        <path d="M30 26 L27.5 3 H32.5 Z" transform="rotate(180 30 26)"/>
+        <path d="M30 26 L27.5 3 H32.5 Z" transform="rotate(225 30 26)"/>
+        <path d="M30 26 L27.5 3 H32.5 Z" transform="rotate(270 30 26)"/>
+        <path d="M30 26 L27.5 3 H32.5 Z" transform="rotate(315 30 26)"/>
+      </g>
+      <path d="M30 24 L56 20 L56 30 L30 28 Z"/>
+    </symbol>
+  </defs>
+
+  <rect width="1200" height="480" fill="url(#sky)"/>
+
+  <!-- sun -->
+  <circle cx="330" cy="330" r="330" fill="url(#glow)"><animate attributeName="opacity" values=".75;1;.75" dur="7s" repeatCount="indefinite"/></circle>
+  <circle cx="330" cy="318" r="118" fill="url(#sun)"/>
+
+  <!-- thin clouds -->
+  <g fill="#ffb27a" opacity=".16"><animateTransform attributeName="transform" type="translate" values="0 0;40 0;0 0" dur="60s" repeatCount="indefinite"/>
+    <ellipse cx="520" cy="170" rx="260" ry="5"/>
+    <ellipse cx="190" cy="205" rx="170" ry="4"/>
+    <ellipse cx="760" cy="230" rx="300" ry="4"/>
+    <ellipse cx="420" cy="250" rx="140" ry="3"/>
+  </g>
+
+  <!-- birds -->
+  <g fill="none" stroke="#2a0806" stroke-width="2.4" stroke-linecap="round">
+    <path d="M470 150 q7 -6 14 0 q7 -6 14 0"/>
+    <path d="M510 128 q5 -4 10 0 q5 -4 10 0"/>
+    <path d="M440 118 q4 -3 8 0 q4 -3 8 0"/>
+  </g>
+
+  <!-- far range -->
+  <path fill="#b8391f" opacity=".55" d="M0 350 L60 330 L110 338 L170 300 L240 305 L270 290 L330 296 L390 318 L460 310 L520 286 L600 292 L650 312 L720 300 L800 318 L860 300 L940 306 L1010 290 L1080 300 L1140 288 L1200 296 V480 H0 Z"/>
+  <!-- mesas -->
+  <path fill="#7a1c12" d="M0 372 L40 372 L52 330 L150 330 L162 372 L300 380 L360 384 L420 360 L470 360 L482 332 L580 332 L592 360 L660 372 L780 384 L860 368 L900 342 L990 342 L1004 370 L1200 382 V480 H0 Z"/>
+  <path fill="#ffb070" opacity=".18" d="M0 340 H1200 V400 H0 Z"/>
+  <!-- ridge with riders -->
+  <path fill="#4a110c" d="M0 402 C120 392 220 388 330 394 C430 400 520 404 640 398 C760 392 880 390 1000 396 C1080 400 1150 402 1200 400 V480 H0 Z"/>
+  <g fill="#2e0a07">
+    <use href="#rider" x="170" y="352" width="58" height="46"/>
+    <use href="#rider" x="232" y="360" width="46" height="36"/>
+    <use href="#rider" x="276" y="366" width="36" height="28"/>
+    <use href="#rider" x="560" y="372" width="30" height="24"/>
+  </g>
+
+  <!-- foreground -->
+  <path fill="#1c0605" d="M0 430 C150 416 300 420 460 428 C640 436 820 424 1000 428 C1100 430 1160 434 1200 436 V480 H0 Z"/>
+  <g fill="#140404">
+    <use href="#windmill" x="60" y="300" width="84" height="182"/>
+    <use href="#cactus" x="10" y="360" width="46" height="104"/>
+    <use href="#cactus" x="400" y="392" width="30" height="68"/>
+    <use href="#cactus" x="1090" y="350" width="52" height="118"/>
+    <use href="#cactus" x="1150" y="392" width="30" height="68"/>
+  </g>
+  <rect y="360" width="1200" height="120" fill="url(#haze)" opacity=".25"/>
+</svg>
