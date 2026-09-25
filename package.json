@@ -21,7 +21,8 @@
       "renderer/**",
       "assets/**",
       "build/icon.ico",
-      "!build/*.cer"
+      "!build/*.cer",
+      "!scripts/**"
     ],
     "directories": {
       "output": "dist"
@@ -33,11 +34,7 @@
         "portable"
       ],
       "signtoolOptions": {
-        "certificateSha1": "6529C1D352A5AE451AD46FC52797D72C439ADBDB",
-        "signingHashAlgorithms": [
-          "sha256"
-        ],
-        "rfc3161TimeStampServer": "http://timestamp.digicert.com",
+        "sign": "./scripts/sign.cjs",
         "publisherName": "Wraith Core"
       },
       "verifyUpdateCodeSignature": false
@@ -48,7 +45,8 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Wraith Core",
-      "artifactName": "WraithCore-Setup.${ext}"
+      "artifactName": "WraithCore-Setup.${ext}",
+      "include": "build/installer.nsh"
     },
     "portable": {
       "artifactName": "WraithCore-Portable.${ext}"
