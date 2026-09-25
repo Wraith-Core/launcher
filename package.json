@@ -1,0 +1,67 @@
+{
+  "name": "wraith-launcher",
+  "productName": "Wraith Core",
+  "version": "1.0.0",
+  "description": "Wraith Core launcher: latest updates, Discord and one-click join",
+  "author": "Wraith Core",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "shot": "electron . --screenshot=preview.png",
+    "dist": "electron-builder --win --publish never",
+    "release": "node scripts/release.mjs"
+  },
+  "build": {
+    "appId": "com.wraithcore.launcher",
+    "productName": "Wraith Core",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**",
+      "assets/**",
+      "build/icon.ico"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Wraith Core",
+      "artifactName": "WraithCore-Setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "WraithCore-Portable.${ext}"
+    },
+    "electronLanguages": [
+      "ar",
+      "en-US"
+    ],
+    "compression": "maximum",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Wraith-Core",
+        "repo": "launcher",
+        "releaseType": "release"
+      }
+    ]
+  },
+  "devDependencies": {
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  }
+}

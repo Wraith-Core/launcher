@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'">
+  <title>Wraith Core</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="titlebar">
+    <div class="brand">
+      <img id="title-logo" src="../assets/logo.png" alt="">
+      <span>Wraith Core</span>
+    </div>
+    <div class="window-buttons">
+      <button id="win-min" title="تصغير" aria-label="تصغير"><svg viewBox="0 0 12 12"><path d="M2 6h8"/></svg></button>
+      <button id="win-close" class="close" title="إغلاق" aria-label="إغلاق"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="hero">
+      <div class="hero-shade"></div>
+      <div class="hero-content">
+        <div class="identity">
+          <img id="logo" class="logo" src="../assets/logo.png" alt="">
+          <div>
+            <h1 id="server-name">Wraith Core</h1>
+            <div id="status" class="status checking">
+              <span class="dot"></span>
+              <span id="status-text">جاري فحص السيرفر…</span>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="play" class="btn primary">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+            <span id="play-text">دخول السيرفر</span>
+          </button>
+          <button id="discord" class="btn ghost" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.3 5.3A16.6 16.6 0 0 0 15.2 4l-.5 1a15.4 15.4 0 0 0-5.4 0l-.5-1a16.6 16.6 0 0 0-4.1 1.3C2.1 9.2 1.4 13 1.7 16.7a16.7 16.7 0 0 0 5 2.5l1.1-1.7a10.7 10.7 0 0 1-1.7-.8l.4-.3a11.9 11.9 0 0 0 11 0l.4.3c-.5.3-1.1.6-1.7.8l1.1 1.7a16.6 16.6 0 0 0 5-2.5c.4-4.3-.7-8-3-11.4ZM8.7 14.4c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Zm6.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2Z"/></svg>
+            <span>الدسكورد</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="feed">
+      <div class="feed-head">
+        <h2>آخر التحديثات</h2>
+        <span id="offline" class="offline" hidden>تعذّر الاتصال بالسيرفر، هذه آخر نسخة محفوظة</span>
+      </div>
+      <div id="updates" class="updates">
+        <p class="empty">جاري تحميل التحديثات…</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span id="join-code"></span>
+    <span id="version"></span>
+  </footer>
+
+  <div id="toast" class="toast" hidden>
+    <span id="toast-text"></span>
+    <button id="toast-action" hidden></button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
