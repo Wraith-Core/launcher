@@ -134,17 +134,31 @@ ipcMain.handle('status', async () => {
   }
 });
 
-// Who is in the server right now: names and ping only (identifiers never leave this process).
-ipcMain.handle('players', async () => {
-  if (mock) return MOCK.map((name, i) => ({ name, ping: 30 + ((i * 37) % 170) }));
+// Who is in the server right now: name, ping and picture from the server's own feed (built by the
+// deploy agent; identifiers never leave the server). Pictures may only come from Discord or Steam.
+const AVATAR_HOSTS = new Set(['cdn.discordapp.com', 'avatars.steamstatic.com', 'avatars.akamai.steamstatic.com', 'avatars.cloudflare.steamstatic.com']);
+const safeAvatar = (url) => {
   try {
-    const list = await getJson(`${SERVER}/players.json`, 5000);
-    return list
-      .map((p) => ({ name: String(p.name || '').replace(/\^\d/g, '').slice(0, 32), ping: Number(p.ping) || 0 }))
-      .filter((p) => p.name)
-      .sort((a, b) => a.name.localeCompare(b.name));
+    const u = new URL(url);
+    return u.protocol === 'https:' && AVATAR_HOSTS.has(u.hostname) ? u.href : null;
   } catch {
-    return [];
+    return null;
+  }
+};
+
+ipcMain.handle('players', async () => {
+  if (mock) return MOCK.map((name, i) => ({ name, ping: 30 + ((i * 37) % 170), avatar: i % 3 === 2 ? null : `https://cdn.discordapp.com/embed/avatars/${i % 6}.png` }));
+  try {
+    const feed = await getJson(`${SERVER}/w_deploy/players.json`, 5000);
+    return (feed.players || []).map((p) => ({ name: String(p.name || '').slice(0, 32), ping: Number(p.ping) || 0, avatar: safeAvatar(p.avatar) })).filter((p) => p.name);
+  } catch {
+    try {
+      // older servers: the built-in list (no pictures; skip clients that are still loading)
+      const list = await getJson(`${SERVER}/players.json`, 5000);
+      return list.filter((p) => p.id > 0).map((p) => ({ name: String(p.name || '').replace(/\^\d/g, '').slice(0, 32), ping: Number(p.ping) || 0, avatar: null }));
+    } catch {
+      return [];
+    }
   }
 });
 

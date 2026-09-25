@@ -232,6 +232,36 @@ function renderUpdates() {
   $('board-note').textContent = query ? `${shown}` : '';
 }
 
+// The player's Discord or Steam picture in a torn paper frame (grey at rest, colour under the cursor);
+// the first letter of the name when there is no picture or it fails to load.
+function avatar(p) {
+  const box = el('span', 'avatar');
+  const letter = () => box.replaceChildren(el('span', 'avatar-letter', [...(p.name || '?')][0].toUpperCase()));
+  if (!p.avatar) {
+    letter();
+    return box;
+  }
+  const img = el('img');
+  img.alt = '';
+  img.loading = 'lazy';
+  img.referrerPolicy = 'no-referrer';
+  img.addEventListener('error', letter, { once: true });
+  img.src = p.avatar;
+  box.append(img);
+  return box;
+}
+
+// Ping in figures plus three bars; the red mark only when the connection is poor.
+function pingMeter(ms) {
+  const level = ms <= 60 ? 3 : ms <= 120 ? 2 : 1;
+  const box = el('span', `ping lv${level}`);
+  const bars = el('span', 'ping-bars');
+  for (let i = 1; i <= 3; i++) bars.append(el('i', i <= level ? 'on' : null));
+  box.append(bars, el('span', 'fig', `${ms}ms`));
+  if (ms > 150) box.append(el('i', 'ping-bad'));
+  return box;
+}
+
 function renderPlayers() {
   const body = $('board-body');
   body.replaceChildren();
@@ -243,7 +273,7 @@ function renderPlayers() {
   }
   list.forEach((p, i) => {
     const row = el('div', 'row');
-    row.append(el('span', 'row-n fig', pad(i + 1)), el('span', 'row-name', p.name), el('span', `row-ping fig${p.ping > 150 ? ' is-slow' : ''}`, `${p.ping}ms`));
+    row.append(el('span', 'row-n fig', pad(i + 1)), avatar(p), el('span', 'row-name', p.name), pingMeter(p.ping));
     body.append(row);
   });
 }
@@ -358,10 +388,8 @@ const params = new URLSearchParams(location.search);
 loadImages().then(showPlate);
 setInterval(showPlate, 16_000);
 setInterval(showTip, 8_000);
-loadFeed().then(() => {
-  const view = params.get('view');
-  if (view === 'updates' || view === 'players') openBoard(view);
-});
+loadFeed();
+if (['updates', 'players'].includes(params.get('view'))) openBoard(params.get('view'));
 refresh();
 checkRedm();
 setMusic(!params.has('quiet') && musicOn(), false);
