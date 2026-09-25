@@ -3,7 +3,8 @@
 //   http://37.221.94.8:30120/w_deploy/launcher.json
 // so the launcher itself rarely needs a new build.
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
-const { autoUpdater } = require('electron-updater');
+const updater = require('./updater');
+const identity = require('./identity');
 const { execFile } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -67,27 +68,9 @@ app.on('second-instance', () => {
 });
 app.whenReady().then(() => {
   createWindow();
-  setupUpdates();
+  updater.setup(() => win, { enabled: !screenshot && app.isPackaged });
 });
 app.on('window-all-closed', () => app.quit());
-
-// ----- launcher self-update (GitHub releases of Wraith-Core/launcher) -------------
-// The installed build downloads updates in the background and installs them on exit;
-// the portable build can't replace itself, so it only tells the player where to get it.
-function setupUpdates() {
-  if (screenshot || !app.isPackaged) return;
-  const portable = Boolean(process.env.PORTABLE_EXECUTABLE_FILE);
-  autoUpdater.autoDownload = !portable;
-  autoUpdater.autoInstallOnAppQuit = true;
-  autoUpdater.on('update-available', (info) => portable && win?.webContents.send('update', { state: 'available', version: info.version }));
-  autoUpdater.on('update-downloaded', (info) => win?.webContents.send('update', { state: 'ready', version: info.version }));
-  autoUpdater.on('error', () => {});
-  const check = () => autoUpdater.checkForUpdates().catch(() => {});
-  check();
-  setInterval(check, 60 * 60_000);
-}
-
-ipcMain.on('install-update', () => autoUpdater.quitAndInstall(true, true));
 
 // ----- data --------------------------------------------------------------------
 
@@ -163,6 +146,49 @@ ipcMain.handle('players', async () => {
 });
 
 ipcMain.handle('redm', () => redmInstalled());
+
+// ----- the player on this PC -----------------------------------------------------------
+// Recognised from Steam / Discord on this PC (identity.js), then looked up on the server: in the
+// server right now or not, and the play time txAdmin has counted for that account.
+const DISCORD_APP_ID = '1550753546763374612'; // the server's Discord application, used only to read the local user
+let me = null;
+let meAt = 0;
+
+ipcMain.handle('me', async () => {
+  if (mock) return { identity: { name: 'RSK', avatar: 'https://cdn.discordapp.com/embed/avatars/1.png' }, server: { known: true, online: true, ping: 42, playMinutes: 3978, firstJoin: 1789092620 } };
+  if (!me || Date.now() - meAt > 5 * 60_000) {
+    me = await identity.detect(feed?.links?.discordAppId || DISCORD_APP_ID).catch(() => me);
+    meAt = Date.now();
+  }
+  if (!me || (!me.steam && !me.discord)) return { identity: null, server: null };
+  const q = new URLSearchParams();
+  if (me.steam) q.set('steam', me.steam);
+  if (me.discord) q.set('discord', me.discord);
+  let server = null;
+  try {
+    server = await getJson(`${SERVER}/w_deploy/me?${q}`, 5000);
+  } catch {}
+  return { identity: { name: me.name, avatar: safeAvatar(me.avatar) }, server };
+});
+
+// Is RedM running on this PC? (RedM.exe and its RedM_*GameProcess / the RDR2 child)
+function redmProcesses() {
+  return new Promise((resolve) => execFile('tasklist', ['/fo', 'csv', '/nh'], { windowsHide: true, maxBuffer: 4 * 1024 * 1024 }, (err, out) => {
+    if (err) return resolve([]);
+    resolve([...new Set(out.split(/\r?\n/).map((l) => l.split('","')[0].replace(/^"/, '')).filter((n) => /^RedM/i.test(n)))]);
+  }));
+}
+ipcMain.handle('game', async () => ({ running: mock || (await redmProcesses()).length > 0 }));
+
+// "Leave the game": closes RedM (the page asks the player to confirm first).
+ipcMain.handle('quit-game', async () => {
+  const names = await redmProcesses();
+  if (!names.length) return false;
+  for (const name of [...names, 'RDR2.exe']) {
+    await new Promise((r) => execFile('taskkill', ['/f', '/im', name], { windowsHide: true }, () => r()));
+  }
+  return true;
+});
 
 // Server images come through the main process as data URLs (the page itself has no network access).
 ipcMain.handle('image', async (_e, name) => {

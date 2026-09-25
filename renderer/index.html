@@ -20,6 +20,7 @@
       <span class="mast-item" id="m-status"><i class="dot"></i><span>جاري الفحص</span></span>
       <span class="mast-item">اللاعبون <b class="fig" id="m-players">—</b></span>
       <span class="mast-item">البنق <b class="fig" id="m-ping">—</b></span>
+      <button class="mast-upd" id="upd" hidden title="تحديث اللانشر"><i class="upd-dot"></i><span id="upd-text"></span></button>
       <button class="mast-btn" id="music-btn" title="الموسيقى">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>
         <span id="music-state">الموسيقى</span>
@@ -35,6 +36,22 @@
       <span class="cap-credit" id="cap-credit" dir="ltr"></span>
     </p>
 
+    <aside class="me" id="me" hidden>
+      <div class="me-wrap">
+        <div class="me-card">
+          <span class="me-avatar" id="me-avatar"></span>
+          <div class="me-main">
+            <b class="me-name" id="me-name"></b>
+            <span class="me-state" id="me-state"></span>
+          </div>
+          <div class="me-stats">
+            <span><b class="fig" id="me-hours">0</b><small>ساعة لعب</small></span>
+            <span><b id="me-since">—</b><small>أول دخول</small></span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
     <section class="mark">
       <p class="welcome"><span id="greet">مساء الخير</span>، أهلاً بك</p>
       <h1 class="wordmark">
@@ -46,8 +63,10 @@
       <div class="actions">
         <button class="plate-btn is-primary" id="play">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+          <i class="in-dot"></i>
           <span id="play-text">ادخل السيرفر</span>
         </button>
+        <button class="plate-btn" id="btn-leave" hidden>خروج من اللعبة</button>
         <button class="plate-btn" id="btn-updates" data-board="updates">التحديثات<i class="attn" id="attn" hidden></i></button>
         <button class="plate-btn" data-board="players">اللاعبون</button>
         <button class="plate-btn" id="btn-discord" hidden>الدسكورد</button>

@@ -317,21 +317,81 @@ async function checkRedm() {
   }
 }
 
-async function join() {
-  if (state.launching) return;
-  state.launching = true;
-  $('play').disabled = true;
-  $('play-text').textContent = 'جاري فتح RedM…';
-  const r = await api.connect();
-  if (r.ok) toast('يتم فتح RedM والدخول للسيرفر مباشرة…');
-  else if (r.reason === 'no-redm') toast('لازم تثبّت RedM أولاً عشان تدخل السيرفر.', { label: 'تحميل RedM', run: () => api.open('redm') });
-  else toast('تعذّر الدخول المباشر، جرّب صفحة الانضمام.', { label: 'صفحة الانضمام', run: () => api.open('join') });
-  setTimeout(() => {
-    state.launching = false;
-    $('play').disabled = false;
-    $('play-text').textContent = 'ادخل السيرفر';
-  }, 6000);
+// ----- the player: recognised on this PC, looked up on the server ---------------------------------
+// idle -> (click) launching -> in (the server sees the account) -> idle again once they leave.
+let launchUntil = 0;
+let presence = 'idle';
+
+function renderPresence() {
+  const play = $('play');
+  play.classList.toggle('is-busy', presence === 'launching');
+  play.classList.toggle('is-in', presence === 'in');
+  play.disabled = presence !== 'idle';
+  $('play-text').textContent = { idle: 'ادخل السيرفر', launching: 'جاري الدخول للسيرفر…', in: 'أنت داخل السيرفر' }[presence];
+  $('btn-leave').hidden = presence !== 'in';
 }
+
+function renderMe(m) {
+  const box = $('me');
+  if (!m?.identity) {
+    box.hidden = true;
+    return;
+  }
+  const srv = m.server || {};
+  box.hidden = false;
+  box.classList.toggle('is-in', Boolean(srv.online));
+  const name = m.identity.name || srv.name || 'لاعب';
+  $('me-name').textContent = name;
+  const av = $('me-avatar');
+  av.replaceChildren(avatar({ name, avatar: m.identity.avatar }).firstChild);
+  $('me-hours').textContent = String(Math.floor((srv.playMinutes || 0) / 60));
+  $('me-since').textContent = srv.firstJoin ? new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(srv.firstJoin * 1000)) : '—';
+  let line;
+  if (srv.online) line = `داخل السيرفر الحين · ${srv.ping}ms`;
+  else if (!srv.known) line = 'ما دخلت السيرفر للحين، أول دخول يبدأ عدّاد ساعاتك';
+  else if (srv.lastSeen) line = `آخر دخول ${ago(new Date(srv.lastSeen * 1000).toISOString())}`;
+  else line = 'غير متصل';
+  $('me-state').textContent = line;
+}
+
+async function refreshMe() {
+  const [m, g] = await Promise.all([api.me(), api.game()]);
+  renderMe(m);
+  const online = Boolean(m?.server?.online);
+  if (online) presence = 'in';
+  else if (g.running || Date.now() < launchUntil) presence = 'launching';
+  else presence = 'idle';
+  if (online) launchUntil = 0;
+  renderPresence();
+}
+
+async function join() {
+  if (presence !== 'idle') return;
+  presence = 'launching';
+  renderPresence();
+  const r = await api.connect();
+  if (r.ok) {
+    launchUntil = Date.now() + 3 * 60_000; // until the server sees the account, or three minutes
+    toast('يتم فتح RedM والدخول للسيرفر مباشرة…');
+  } else {
+    presence = 'idle';
+    renderPresence();
+    if (r.reason === 'no-redm') toast('لازم تثبّت RedM أولاً عشان تدخل السيرفر.', { label: 'تحميل RedM', run: () => api.open('redm') });
+    else toast('تعذّر الدخول المباشر، جرّب صفحة الانضمام.', { label: 'صفحة الانضمام', run: () => api.open('join') });
+  }
+}
+
+$('btn-leave').addEventListener('click', () => {
+  toast('تبي تطلع من اللعبة؟ بتنقفل RedM.', {
+    label: 'اطلع من اللعبة',
+    run: async () => {
+      await api.quitGame();
+      launchUntil = 0;
+      setTimeout(refreshMe, 1500);
+    },
+  });
+});
+
 $('play').addEventListener('click', join);
 $('btn-discord').addEventListener('click', () => api.open('discord'));
 
@@ -377,10 +437,36 @@ $('greet').textContent = (() => {
   return h >= 4 && h < 12 ? 'صباح الخير' : 'مساء الخير';
 })();
 
-api.onUpdate((info) => {
-  if (info.state === 'ready') toast(`نسخة جديدة من اللانشر (${info.version}) جاهزة، تتثبت عند الإغلاق.`, { label: 'تحديث الآن', run: () => api.installUpdate() });
-  else toast(`نسخة جديدة من اللانشر متوفرة (${info.version}).`, { label: 'تحميل', run: () => api.open('launcher') });
-});
+// ----- launcher update: one button in the masthead -------------------------------------------------
+
+let updateAnnounced = false;
+function renderUpdate(u) {
+  const btn = $('upd');
+  if (!u || u.state === 'idle') {
+    btn.hidden = true;
+    return;
+  }
+  const pct = `${u.percent || 0}٪`;
+  const text = {
+    available: `تحديث جديد ${u.version} · حدّث الآن`,
+    downloading: u.wantInstall ? `جاري تحديث اللانشر ${pct}` : `تحديث جديد ${u.version} · ${pct}`,
+    ready: `حدّث الآن إلى ${u.version}`,
+    installing: 'جاري التحديث، سيعاد فتح اللانشر…',
+    error: 'تعذّر التحديث، اضغط للمحاولة مرة ثانية',
+  }[u.state];
+  btn.hidden = false;
+  $('upd-text').textContent = text;
+  btn.disabled = u.state === 'installing';
+  btn.classList.toggle('is-ready', u.state === 'ready' || u.state === 'available');
+  btn.style.setProperty('--pct', `${u.state === 'downloading' ? u.percent || 0 : 0}%`);
+  if (!updateAnnounced && (u.state === 'available' || u.state === 'downloading' || u.state === 'ready')) {
+    updateAnnounced = true;
+    toast(`نسخة جديدة من اللانشر (${u.version}) متوفرة.`, { label: 'حدّث الآن', run: () => api.installUpdate() });
+  }
+}
+$('upd').addEventListener('click', () => api.installUpdate());
+api.onUpdate(renderUpdate);
+api.updateState().then(renderUpdate);
 
 // ----- boot ----------------------------------------------------------------------------------------
 
@@ -392,6 +478,8 @@ loadFeed();
 if (['updates', 'players'].includes(params.get('view'))) openBoard(params.get('view'));
 refresh();
 checkRedm();
+refreshMe();
+setInterval(refreshMe, 8_000);
 setMusic(!params.has('quiet') && musicOn(), false);
 setInterval(refresh, 20_000);
 setInterval(loadFeed, 5 * 60_000);

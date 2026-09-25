@@ -1,7 +1,7 @@
 {
   "name": "wraith-launcher",
   "productName": "Wraith Core",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "description": "Wraith Core launcher: latest updates, Discord and one-click join",
   "author": "Wraith Core",
   "main": "main.js",
@@ -17,6 +17,8 @@
     "productName": "Wraith Core",
     "files": [
       "main.js",
+      "identity.js",
+      "updater.js",
       "preload.js",
       "renderer/**",
       "assets/**",
