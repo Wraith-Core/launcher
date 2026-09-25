@@ -7,7 +7,8 @@ import fs from 'node:fs';
 const { version } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const tag = `v${version}`;
 const notes = process.argv.slice(2).join(' ') || `Wraith Core launcher ${tag}`;
-const run = (cmd, args) => execFileSync(cmd, args, { stdio: 'inherit', shell: process.platform === 'win32' });
+// npx is a .cmd shim on Windows (needs a shell); gh is a real exe, so its arguments stay intact.
+const run = (cmd, args) => execFileSync(cmd, args, { stdio: 'inherit', shell: cmd === 'npx' && process.platform === 'win32' });
 
 const exists = (() => {
   try {
@@ -27,5 +28,5 @@ run('npx', ['electron-builder', '--win', '--publish', 'never']);
 
 const assets = ['dist/WraithCore-Setup.exe', 'dist/WraithCore-Setup.exe.blockmap', 'dist/latest.yml', 'dist/WraithCore-Portable.exe'];
 for (const a of assets) if (!fs.existsSync(a)) throw new Error(`missing build output: ${a}`);
-run('gh', ['release', 'create', tag, ...assets, '--repo', 'Wraith-Core/launcher', '--title', `Wraith Core Launcher ${tag}`, '--notes', `"${notes.replace(/"/g, "'")}"`]);
+run('gh', ['release', 'create', tag, ...assets, '--repo', 'Wraith-Core/launcher', '--title', `Wraith Core Launcher ${tag}`, '--notes', notes]);
 console.log(`\nReleased ${tag}: https://github.com/Wraith-Core/launcher/releases/tag/${tag}`);
