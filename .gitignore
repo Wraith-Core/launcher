@@ -1,3 +1,11 @@
 node_modules/
 dist/
 preview*.png
+
+# Private key material -- NEVER commit these.
+# The code-signing .pfx must stay out of git entirely.
+*.pfx
+*.p12
+*.key
+*.pem
+*.jks
