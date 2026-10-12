@@ -3,8 +3,9 @@
 //   installed build  electron-updater downloads the new installer in the background; the button shows
 //                    the progress and "update now" installs it silently and reopens the launcher.
 //   portable build   it can't be replaced by electron-updater, so the button downloads the new portable
-//                    exe, checks it carries the Wraith Core signature, and a tiny cmd script swaps the file
-//                    once this process has exited and starts the new one.
+//                    exe, checks it carries the launcher's signature (the certificate is still named
+//                    "Wraith Core"), and a tiny cmd script swaps the file once this process has exited
+//                    and starts the new one.
 const { app, ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { execFile, spawn } = require('node:child_process');
@@ -16,6 +17,10 @@ const path = require('node:path');
 const REPO = 'Wraith-Core/launcher';
 const THUMBPRINT = '6529C1D352A5AE451AD46FC52797D72C439ADBDB';
 const portableExe = process.env.PORTABLE_EXECUTABLE_FILE || null;
+// The portable exe as attached to each release. Portable copies of 1.3.0 have the old name
+// "WraithCore-Portable.exe" built in, so scripts/release.mjs attaches it under both names; this
+// version asks for the Red River name and falls back to the old one if a release lacks it.
+const PORTABLE_ASSETS = ['RedRiver-Portable.exe', 'WraithCore-Portable.exe'];
 
 let state = { state: 'idle' }; // idle | available | downloading | ready | installing | error
 let getWindow = () => null;
@@ -26,16 +31,41 @@ function emit(patch) {
   getWindow()?.webContents.send('update', state);
 }
 
-// The file must be signed by the Wraith Core certificate. "UnknownError" only means this PC doesn't
-// trust the certificate's root (the player never installed it); a tampered file reports HashMismatch.
+// The certificate is self-signed, so on a player's PC it can never be 'Valid' -- the root was never
+// installed there. 'UnknownError' is exactly that case; 'HashMismatch' means the file was changed.
+const ACCEPTED_STATUS = new Set(['Valid', 'UnknownError']);
+
+/** What Windows says about a file's signature: { status, thumbprint }, or null when it cannot be read */
+function signatureOf(file) {
+  const script = `$s = Get-AuthenticodeSignature -LiteralPath '${file.replace(/'/g, "''")}'; if ($s -and $s.SignerCertificate) { [string]$s.Status + '|' + $s.SignerCertificate.Thumbprint }`;
+  return new Promise((resolve) => execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], { windowsHide: true }, (err, out) => {
+    if (err || !out) return resolve(null);
+    const [status, thumbprint] = out.trim().split('|');
+    resolve({ status, thumbprint });
+  }));
+}
+
 function signedByUs(file) {
-  const script = `$s = Get-AuthenticodeSignature -LiteralPath '${file.replace(/'/g, "''")}'; if ($s.SignerCertificate.Thumbprint -eq '${THUMBPRINT}' -and ('Valid','UnknownError') -contains [string]$s.Status) { 'ok' }`;
-  return new Promise((resolve) => execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], { windowsHide: true }, (err, out) => resolve(!err && out.trim() === 'ok')));
+  return signatureOf(file).then((sig) => !!sig && ACCEPTED_STATUS.has(sig.status) && sig.thumbprint === THUMBPRINT);
+}
+
+/**
+ * The same policy for electron-updater's installed path, which would otherwise reject every update.
+ *
+ * Its own check asks for a fully Valid signature and would compare on the certificate NAME; this one
+ * asks for the pinned THUMBPRINT instead, so a look-alike certificate cannot pass either.
+ */
+async function verifyUpdateSignature(_publisherNames, filePath) {
+  const sig = await signatureOf(filePath);
+  if (!sig) return 'the downloaded installer carries no readable signature';
+  if (sig.thumbprint !== THUMBPRINT) return `signed by ${sig.thumbprint || 'an unknown certificate'}, not ${THUMBPRINT}`;
+  if (!ACCEPTED_STATUS.has(sig.status)) return `signature status ${sig.status}`;
+  return null; // null = verified
 }
 
 async function download(url, file, onProgress) {
   const res = await fetch(url, { redirect: 'follow' });
-  if (!res.ok) throw new Error(`download failed (HTTP ${res.status})`);
+  if (!res.ok) throw Object.assign(new Error(`download failed (HTTP ${res.status})`), { status: res.status });
   const total = Number(res.headers.get('content-length')) || 0;
   const out = fs.createWriteStream(file);
   let got = 0;
@@ -52,17 +82,24 @@ async function download(url, file, onProgress) {
 async function updatePortable() {
   const version = state.version;
   const dir = path.dirname(portableExe);
-  let tmp = path.join(dir, `WraithCore-Portable.${version}.update.exe`);
+  let tmp = path.join(dir, `RedRiver-Portable.${version}.update.exe`);
   try {
     fs.accessSync(dir, fs.constants.W_OK);
   } catch {
-    tmp = path.join(os.tmpdir(), `WraithCore-Portable.${version}.update.exe`);
+    tmp = path.join(os.tmpdir(), `RedRiver-Portable.${version}.update.exe`);
   }
   emit({ state: 'downloading', percent: 0, wantInstall: true });
-  await download(`https://github.com/${REPO}/releases/download/v${version}/WraithCore-Portable.exe`, tmp, (percent) => emit({ percent }));
+  for (const asset of PORTABLE_ASSETS) {
+    try {
+      await download(`https://github.com/${REPO}/releases/download/v${version}/${asset}`, tmp, (percent) => emit({ percent }));
+      break;
+    } catch (e) {
+      if (e.status !== 404 || asset === PORTABLE_ASSETS.at(-1)) throw e; // only a missing asset tries the next name
+    }
+  }
   if (!(await signedByUs(tmp))) {
     fs.rmSync(tmp, { force: true });
-    throw new Error('the downloaded file is not signed by Wraith Core');
+    throw new Error('the downloaded file does not carry the launcher signature');
   }
   emit({ state: 'installing' });
   // Swap the file once the running copy lets go of it (up to 90 s), then start the new one.
@@ -121,6 +158,8 @@ function setup(windowGetter, { enabled }) {
 
   autoUpdater.autoDownload = !portableExe;
   autoUpdater.autoInstallOnAppQuit = true;
+  // must be set before the first check: electron-updater reads it when it verifies a download
+  autoUpdater.verifyUpdateCodeSignature = verifyUpdateSignature;
   autoUpdater.on('update-available', (info) => emit({ state: portableExe ? 'available' : 'downloading', version: info.version, percent: 0 }));
   autoUpdater.on('download-progress', (p) => emit({ state: 'downloading', percent: Math.floor(p.percent) }));
   autoUpdater.on('update-downloaded', (info) => {

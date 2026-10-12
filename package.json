@@ -1,9 +1,9 @@
 {
   "name": "wraith-launcher",
   "productName": "Wraith Core",
-  "version": "1.3.0",
-  "description": "Wraith Core launcher: latest updates, Discord and one-click join",
-  "author": "Wraith Core",
+  "version": "1.4.0",
+  "description": "لانشر ريد ريفر: آخر التحديثات والدسكورد والدخول للسيرفر بضغطة · Red River launcher",
+  "author": "ريد ريفر - Red River",
   "main": "main.js",
   "private": true,
   "scripts": {
@@ -14,7 +14,8 @@
   },
   "build": {
     "appId": "com.wraithcore.launcher",
-    "productName": "Wraith Core",
+    "productName": "ريد ريفر - Red River",
+    "executableName": "Wraith Core",
     "files": [
       "main.js",
       "identity.js",
@@ -39,19 +40,20 @@
         "sign": "./scripts/sign.cjs",
         "publisherName": "Wraith Core"
       },
-      "verifyUpdateCodeSignature": false
+      "verifyUpdateCodeSignature": true
     },
     "nsis": {
       "oneClick": true,
       "perMachine": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Wraith Core",
-      "artifactName": "WraithCore-Setup.${ext}",
+      "shortcutName": "ريد ريفر - Red River",
+      "uninstallDisplayName": "ريد ريفر - Red River",
+      "artifactName": "RedRiver-Setup.${ext}",
       "include": "build/installer.nsh"
     },
     "portable": {
-      "artifactName": "WraithCore-Portable.${ext}"
+      "artifactName": "RedRiver-Portable.${ext}"
     },
     "electronLanguages": [
       "ar",
