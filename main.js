@@ -21,7 +21,15 @@ const identity = require('./identity');
 const { execFile } = require('node:child_process');
 const fs = require('node:fs');
 
-const SERVER = 'http://37.221.94.8:30120';
+// The server's own address. Overridable so the deployment can move behind TLS without a rebuild:
+// set WRAITH_SERVER_URL to the https:// address before packaging. While it is plain http, the /me
+// lookup below carries this PC's Steam and Discord ids in clear text, so prefer TLS when there is
+// a choice.
+const SERVER = process.env.WRAITH_SERVER_URL || 'http://37.221.94.8:30120';
+// Sent as ?k= on /me, matching `w_deploy_view_key` on the server. Left empty the server leaves /me
+// open (rate limited); setting it there makes /me want this. Not a secret -- it ships in the app --
+// so it only makes a casual sweep cost more than it saves.
+const VIEW_KEY = '';
 const FEED_URL = `${SERVER}/w_deploy/launcher.json`;
 const RELEASES = 'https://github.com/Wraith-Core/launcher/releases/latest';
 const IMAGES = { 'logo.png': 'image/png', 'banner.jpg': 'image/jpeg', 'hero.jpg': 'image/jpeg' };
@@ -176,6 +184,7 @@ ipcMain.handle('me', async () => {
   const q = new URLSearchParams();
   if (me.steam) q.set('steam', me.steam);
   if (me.discord) q.set('discord', me.discord);
+  if (VIEW_KEY) q.set('k', VIEW_KEY);
   let server = null;
   try {
     server = await getJson(`${SERVER}/w_deploy/me?${q}`, 5000);
