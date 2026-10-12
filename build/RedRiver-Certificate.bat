@@ -1,10 +1,10 @@
 @echo off
-rem Wraith Core: trust the launcher's code-signing certificate for this Windows user (run once).
+rem Red River: trust the launcher's code-signing certificate for this Windows user (run once).
 rem Adds the public certificate "CN=Wraith Core" to your Trusted Root and Trusted Publishers stores.
 rem It is limited to Code Signing: it cannot vouch for websites. Remove it any time from certmgr.msc.
 setlocal
-set "CER=%TEMP%\WraithCore-CodeSigning.cer"
-set "B64=%TEMP%\WraithCore-CodeSigning.b64"
+set "CER=%TEMP%\RedRiver-CodeSigning.cer"
+set "B64=%TEMP%\RedRiver-CodeSigning.b64"
 > "%B64%" echo -----BEGIN CERTIFICATE-----
 >> "%B64%" echo MIIEKDCCApCgAwIBAgIQI1JWNoe4gIFAKM/sUfUjkTANBgkqhkiG9w0BAQsFADAs
 >> "%B64%" echo MRQwEgYDVQQKDAtXcmFpdGggQ29yZTEUMBIGA1UEAwwLV3JhaXRoIENvcmUwHhcN
@@ -32,11 +32,11 @@ set "B64=%TEMP%\WraithCore-CodeSigning.b64"
 >> "%B64%" echo -----END CERTIFICATE-----
 certutil -f -decode "%B64%" "%CER%" >nul
 echo.
-echo  Windows will ask you to confirm the "Wraith Core" certificate. Press YES.
+echo  Windows will ask you to confirm a certificate named "Wraith Core" (the Red River launcher's signature). Press YES.
 echo.
 certutil -user -addstore Root "%CER%" >nul
 certutil -user -addstore TrustedPublisher "%CER%" >nul
 del /q "%B64%" "%CER%" >nul 2>&1
-echo  Done. You can now install and run the Wraith Core launcher.
+echo  Done. You can now install and run the Red River launcher.
 echo.
 pause

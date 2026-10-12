@@ -115,10 +115,14 @@ function markSeen() {
 
 function applyFeed(feed) {
   state.feed = feed;
-  const name = feed.server?.name || 'Wraith Core';
-  $('wm-primary').textContent = name;
-  document.title = name;
-  if (feed.server?.nameAr) $('wm-second').textContent = feed.server.nameAr;
+  // Arabic first: the Arabic name is the wordmark and leads the masthead, the Latin name follows.
+  const nameAr = feed.server?.nameAr || 'ريد ريفر';
+  const name = feed.server?.name || 'Red River';
+  $('wm-primary').textContent = nameAr;
+  $('wm-second').textContent = name;
+  $('mast-ar').textContent = nameAr;
+  $('mast-en').textContent = name;
+  document.title = `${nameAr} - ${name}`;
   if (feed.server?.tagline) $('tagline').textContent = feed.server.tagline;
   $('btn-discord').hidden = !feed.links?.discord;
   const code = feed.server?.joinCode ? `cfx.re/join/${feed.server.joinCode}` : '';

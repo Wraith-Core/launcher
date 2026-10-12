@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════════════
-   Wraith Core launcher — built from the server's own interface:
+   ريد ريفر (Red River) launcher — built from the server's own interface:
    the palette and roles of w_lib/nui/theme (ink, paper, one red as a mark), the survey plates,
    scrims and progress hairline of w_loading, and the torn ink cards of w_pausemenu
    (tear.png 9-slice mask + grain.png, both w_pausemenu's own procedural textures).
@@ -102,7 +102,10 @@ svg { display: block; }
   font: 700 .9rem/1 var(--f-label);
   text-shadow: 0 1px .4rem rgba(0, 0, 0, .6);
 }
-.mast-mark { font: 700 1.2rem/1 var(--f-mark); letter-spacing: .14em; color: var(--paper); white-space: nowrap; }
+/* Arabic name first (Lalezar, never letter-spaced), the Latin name after it in small caps */
+.mast-mark { display: inline-flex; align-items: baseline; gap: .6rem; color: var(--paper); white-space: nowrap; }
+.mast-ar { font: 1.4rem/1 var(--f-title); }
+.mast-en { font: 700 .74rem/1 var(--f-mark); letter-spacing: .2em; text-transform: uppercase; color: var(--paper-dim); }
 .mast-rule { flex: 1; height: 1px; background: var(--rule); }
 .mast-item { display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap; }
 .mast-item b { color: var(--paper); font-weight: 500; font-size: 1.05rem; }
@@ -155,16 +158,18 @@ svg { display: block; }
 @keyframes rise { from { opacity: 0; transform: translate3d(0, .8rem, 0); } }
 .welcome { font: 1.05rem/1.3 var(--f-text); color: var(--paper-dim); margin-bottom: .8rem; }
 .wordmark { font-weight: 400; }
+/* Arabic first: the Arabic name is the wordmark (Lalezar, never letter-spaced), the Latin name
+   sits under it in EB Garamond capitals, after the hairline */
 .wm-primary {
   display: block;
-  font: 800 4.9rem/.86 var(--f-mark); letter-spacing: .05em; text-transform: uppercase;
+  font: 5.6rem/1.05 var(--f-title);
   color: var(--paper);
   text-shadow: 0 .2rem 1.6rem rgba(0, 0, 0, .55);
 }
 .wm-second {
   display: flex; align-items: center; gap: 1rem;
-  margin-top: .9rem;
-  font: 2.2rem/1.2 var(--f-title);
+  margin-top: .5rem;
+  font: 700 1.5rem/1.2 var(--f-mark); letter-spacing: .22em; text-transform: uppercase;
   color: var(--paper-dim);
 }
 .wm-second::before { content: ''; flex: none; width: 3rem; height: 1px; background: var(--paper-faint); }
@@ -255,6 +260,8 @@ svg { display: block; }
   letter-spacing: .12em; text-transform: uppercase;
   color: var(--paper-faint);
 }
+/* the Arabic line of the notice comes first; Arabic is never letter-spaced */
+.legal-ar { margin-inline-end: 1.2em; font: 500 max(10px, .62rem)/1.2 var(--f-label); letter-spacing: 0; text-transform: none; }
 
 /* ── the board: one torn ink card (w_pausemenu .pm-wrap > .pm-card) ─────────────── */
 .board-scrim { position: fixed; inset: 0; background: rgba(5, 5, 5, .55); animation: fade .3s var(--ease); }

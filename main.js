@@ -1,13 +1,25 @@
-// Wraith Core launcher — main process.
+// ريد ريفر (Red River) launcher — main process.
 // Everything shown (updates, links, join code, branding) comes from the server's public feed:
 //   http://37.221.94.8:30120/w_deploy/launcher.json
 // so the launcher itself rarely needs a new build.
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const path = require('node:path');
+
+// ----- the player's data stays where it has always been -------------------------------------------
+// Electron keeps userData in %APPDATA%\<app name>, and the app name is the "productName" packaged in
+// app.asar. Launchers 1.0-1.3 shipped as "Wraith Core", so on every player's PC feed-cache.json,
+// identity.json (who the player is) and localStorage (music on/off, last update seen) live in
+// %APPDATA%\Wraith Core. The public name is now ريد ريفر / Red River, but only the names players see
+// changed (build.productName, shortcutName, uninstallDisplayName in package.json): the packaged
+// productName is still "Wraith Core", and this line pins the folder as well, so renaming either one
+// later can never move it. It runs before anything touches userData (the single-instance lock below
+// lives there too). Never change this folder name: players would silently lose that data.
+app.setPath('userData', path.join(app.getPath('appData'), 'Wraith Core'));
+
 const updater = require('./updater');
 const identity = require('./identity');
 const { execFile } = require('node:child_process');
 const fs = require('node:fs');
-const path = require('node:path');
 
 const SERVER = 'http://37.221.94.8:30120';
 const FEED_URL = `${SERVER}/w_deploy/launcher.json`;
@@ -35,7 +47,7 @@ function createWindow() {
     show: false,
     paintWhenInitiallyHidden: true,
     backgroundColor: '#1a0808',
-    title: 'Wraith Core',
+    title: 'ريد ريفر - Red River',
     icon: path.join(__dirname, 'build', 'icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

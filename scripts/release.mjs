@@ -6,7 +6,7 @@ import fs from 'node:fs';
 
 const { version } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const tag = `v${version}`;
-const notes = process.argv.slice(2).join(' ') || `Wraith Core launcher ${tag}`;
+const notes = process.argv.slice(2).join(' ') || `لانشر ريد ريفر ${tag}`;
 // npx is a .cmd shim on Windows (needs a shell); gh is a real exe, so its arguments stay intact.
 const run = (cmd, args) => execFileSync(cmd, args, { stdio: 'inherit', shell: cmd === 'npx' && process.platform === 'win32' });
 
@@ -27,7 +27,18 @@ fs.rmSync('dist', { recursive: true, force: true });
 run('npx', ['electron-builder', '--win', '--publish', 'never']);
 
 // The certificate installer ships with every release: players run it once so Windows trusts the signature.
-const assets = ['dist/WraithCore-Setup.exe', 'dist/WraithCore-Setup.exe.blockmap', 'dist/latest.yml', 'dist/WraithCore-Portable.exe', 'build/WraithCore-Certificate.bat', 'build/WraithCore-CodeSigning.cer'];
+const SETUP = 'RedRiver-Setup.exe';
+const assets = [`dist/${SETUP}`, `dist/${SETUP}.blockmap`, 'dist/latest.yml', 'dist/RedRiver-Portable.exe', 'build/RedRiver-Certificate.bat', 'build/RedRiver-CodeSigning.cer'];
 for (const a of assets) if (!fs.existsSync(a)) throw new Error(`missing build output: ${a}`);
-run('gh', ['release', 'create', tag, ...assets, '--repo', 'Wraith-Core/launcher', '--title', `Wraith Core Launcher ${tag}`, '--notes', notes]);
+
+// Installed launchers download exactly the file latest.yml names, so it must be the installer uploaded here.
+const named = [...fs.readFileSync('dist/latest.yml', 'utf8').matchAll(/^\s*(?:- )?(?:url|path): (.+)$/gm)].map((m) => m[1].trim());
+if (!named.length || named.some((n) => n !== SETUP)) throw new Error(`dist/latest.yml names ${named.join(', ') || 'nothing'}, expected ${SETUP}`);
+
+// The Wraith Core names stay on every release: portable copies of 1.3.0 download WraithCore-Portable.exe
+// by that exact name, and older links (Discord posts, the old README) point at the WraithCore-* files.
+const legacy = { [`dist/${SETUP}`]: 'dist/WraithCore-Setup.exe', 'dist/RedRiver-Portable.exe': 'dist/WraithCore-Portable.exe', 'build/RedRiver-Certificate.bat': 'dist/WraithCore-Certificate.bat' };
+for (const [from, to] of Object.entries(legacy)) fs.copyFileSync(from, to);
+
+run('gh', ['release', 'create', tag, ...assets, ...Object.values(legacy), '--repo', 'Wraith-Core/launcher', '--title', `ريد ريفر - Red River ${tag}`, '--notes', notes]);
 console.log(`\nReleased ${tag}: https://github.com/Wraith-Core/launcher/releases/tag/${tag}`);

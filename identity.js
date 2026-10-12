@@ -11,6 +11,7 @@ const net = require('node:net');
 const path = require('node:path');
 
 const STEAM64_BASE = 76561197960265728n;
+// %APPDATA%\Wraith Core\identity.json: main.js pins userData to that folder (kept from 1.0-1.3).
 const store = () => path.join(app.getPath('userData'), 'identity.json');
 
 function reg(key, value) {
