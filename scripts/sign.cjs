@@ -35,9 +35,11 @@ exports.default = async function sign(configuration) {
   clearStaleCertificateTable(file);
   const quoted = file.replace(/'/g, "''");
   const script = [
+    // Initialize the Windows PowerShell provider explicitly when launched from a portable pwsh host.
+    `Import-Module (Join-Path $PSHOME 'Modules/Microsoft.PowerShell.Security/Microsoft.PowerShell.Security.psd1') -ErrorAction Stop`,
     `$c = Get-Item 'Cert:\\CurrentUser\\My\\${THUMBPRINT}' -ErrorAction Stop`,
     `$r = Set-AuthenticodeSignature -LiteralPath '${quoted}' -Certificate $c -HashAlgorithm SHA256 -TimestampServer '${TIMESTAMP}'`,
-    `if ($r.SignerCertificate.Thumbprint -ne '${THUMBPRINT}') { Write-Error ('signing failed: ' + $r.StatusMessage); exit 1 }`,
+    `if ($r.Status -ne 'Valid' -or $r.SignerCertificate.Thumbprint -ne '${THUMBPRINT}') { Write-Error ('signing failed: ' + $r.StatusMessage); exit 1 }`,
   ].join('; ');
   execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], { stdio: 'inherit' });
 };

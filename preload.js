@@ -8,6 +8,8 @@ contextBridge.exposeInMainWorld('wraith', {
   players: () => ipcRenderer.invoke('players'),
   redm: () => ipcRenderer.invoke('redm'),
   me: () => ipcRenderer.invoke('me'),
+  pairStart: () => ipcRenderer.invoke('pair-start'),
+  pairRemove: () => ipcRenderer.invoke('pair-remove'),
   game: () => ipcRenderer.invoke('game'),
   quitGame: () => ipcRenderer.invoke('quit-game'),
   image: (name) => ipcRenderer.invoke('image', name),

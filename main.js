@@ -1,8 +1,8 @@
 // ريد ريفر (Red River) launcher — main process.
 // Everything shown (updates, links, join code, branding) comes from the server's public feed:
-//   http://37.221.94.8:30120/w_deploy/launcher.json
+//   https://wraith7.com/shop/api/launcher/public/launcher.json
 // so the launcher itself rarely needs a new build.
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, safeStorage } = require('electron');
 const path = require('node:path');
 
 // ----- the player's data stays where it has always been -------------------------------------------
@@ -21,16 +21,12 @@ const identity = require('./identity');
 const { execFile } = require('node:child_process');
 const fs = require('node:fs');
 
-// The server's own address. Overridable so the deployment can move behind TLS without a rebuild:
-// set WRAITH_SERVER_URL to the https:// address before packaging. While it is plain http, the /me
-// lookup below carries this PC's Steam and Discord ids in clear text, so prefer TLS when there is
-// a choice.
-const SERVER = process.env.WRAITH_SERVER_URL || 'http://37.221.94.8:30120';
-// Sent as ?k= on /me, matching `w_deploy_view_key` on the server. Left empty the server leaves /me
-// open (rate limited); setting it there makes /me want this. Not a secret -- it ships in the app --
-// so it only makes a casual sweep cost more than it saves.
-const VIEW_KEY = '';
-const FEED_URL = `${SERVER}/w_deploy/launcher.json`;
+// Public data is published by the game server over HTTPS; the app never queries an identifier.
+const policy = require('./network-policy');
+const { createAccountLink } = require('./account-link');
+const API = policy.apiBase(process.env.WRAITH_LAUNCHER_API_URL);
+const SERVER = `${API}/public`;
+const FEED_URL = `${SERVER}/launcher.json`;
 const RELEASES = 'https://github.com/Wraith-Core/launcher/releases/latest';
 const IMAGES = { 'logo.png': 'image/png', 'banner.jpg': 'image/jpeg', 'hero.jpg': 'image/jpeg' };
 
@@ -94,10 +90,10 @@ app.on('window-all-closed', () => app.quit());
 
 // ----- data --------------------------------------------------------------------
 
-const cacheFile = () => path.join(app.getPath('userData'), 'feed-cache.json');
+const cacheFile = () => path.join(app.getPath('userData'), 'feed-cache-v2.json');
 
 async function getJson(url, ms) {
-  const res = await fetch(url, { signal: AbortSignal.timeout(ms), cache: 'no-store' });
+  const res = await fetch(url, { signal: AbortSignal.timeout(ms), cache: 'no-store', redirect: 'error' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
@@ -152,7 +148,7 @@ const safeAvatar = (url) => {
 ipcMain.handle('players', async () => {
   if (mock) return MOCK.map((name, i) => ({ name, ping: 30 + ((i * 37) % 170), avatar: i % 3 === 2 ? null : `https://cdn.discordapp.com/embed/avatars/${i % 6}.png` }));
   try {
-    const feed = await getJson(`${SERVER}/w_deploy/players.json`, 5000);
+    const feed = await getJson(`${SERVER}/players.json`, 5000);
     return (feed.players || []).map((p) => ({ name: String(p.name || '').slice(0, 32), ping: Number(p.ping) || 0, avatar: safeAvatar(p.avatar) })).filter((p) => p.name);
   } catch {
     try {
@@ -174,22 +170,36 @@ const DISCORD_APP_ID = '1550753546763374612'; // the server's Discord applicatio
 let me = null;
 let meAt = 0;
 
+const tokenFile = () => path.join(app.getPath('userData'), 'launcher-account.dpapi');
+let account;
+const accountLink = () => account ??= createAccountLink({
+  request: async (method, route, token) => {
+    const response = await fetch(API + route, { method, redirect: 'error', signal: AbortSignal.timeout(8000),
+      headers: { Origin: new URL(API).origin, ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
+    return { status: response.status, body: await response.json() };
+  },
+  load: () => { try { return safeStorage.isEncryptionAvailable() ? safeStorage.decryptString(fs.readFileSync(tokenFile())) : ''; } catch { return ''; } },
+  save: (token) => {
+    if (!safeStorage.isEncryptionAvailable()) throw new Error('Secure account storage unavailable');
+    const temp = tokenFile() + '.tmp'; fs.writeFileSync(temp, safeStorage.encryptString(token)); fs.renameSync(temp, tokenFile());
+  },
+  remove: () => fs.rmSync(tokenFile(), { force: true }),
+});
+let identityRefresh = null;
+ipcMain.handle('pair-start', async () => {
+  try { return { ok: true, ...await accountLink().start() }; } catch { return { ok: false }; }
+});
+ipcMain.handle('pair-remove', async () => {
+  try { await accountLink().unlink(); return { ok: true }; } catch { return { ok: false }; }
+});
 ipcMain.handle('me', async () => {
-  if (mock) return { identity: { name: 'RSK', avatar: 'https://cdn.discordapp.com/embed/avatars/1.png' }, server: { known: true, online: true, ping: 42, playMinutes: 3978, firstJoin: 1789092620 } };
-  if (!me || Date.now() - meAt > 5 * 60_000) {
-    me = await identity.detect(feed?.links?.discordAppId || DISCORD_APP_ID).catch(() => me);
+  if (mock) return { identity: { name: 'RSK', avatar: 'https://cdn.discordapp.com/embed/avatars/1.png' }, state: 'linked', server: { known: true, online: true, ping: 42, playMinutes: 3978, firstJoin: 1789092620 } };
+  if ((!me || Date.now() - meAt > 5 * 60_000) && !identityRefresh) {
     meAt = Date.now();
+    identityRefresh = identity.detect(DISCORD_APP_ID).then((value) => { me = value; }).catch(() => {}).finally(() => { identityRefresh = null; });
   }
-  if (!me || (!me.steam && !me.discord)) return { identity: null, server: null };
-  const q = new URLSearchParams();
-  if (me.steam) q.set('steam', me.steam);
-  if (me.discord) q.set('discord', me.discord);
-  if (VIEW_KEY) q.set('k', VIEW_KEY);
-  let server = null;
-  try {
-    server = await getJson(`${SERVER}/w_deploy/me?${q}`, 5000);
-  } catch {}
-  return { identity: { name: me.name, avatar: safeAvatar(me.avatar) }, server };
+  const linked = await accountLink().status();
+  return { ...linked, identity: { name: linked.server?.name || me?.name || 'حسابك', avatar: safeAvatar(me?.avatar) } };
 });
 
 // Is RedM running on this PC? (RedM.exe and its RedM_*GameProcess / the RDR2 child)
@@ -215,7 +225,7 @@ ipcMain.handle('quit-game', async () => {
 ipcMain.handle('image', async (_e, name) => {
   if (!IMAGES[name]) return null;
   try {
-    const res = await fetch(`${SERVER}/w_deploy/${name}`, { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(`${SERVER}/${name}`, { signal: AbortSignal.timeout(8000), redirect: 'error' });
     if (!res.ok) return null;
     return `data:${IMAGES[name]};base64,${Buffer.from(await res.arrayBuffer()).toString('base64')}`;
   } catch {
@@ -239,8 +249,8 @@ ipcMain.handle('connect', async () => {
   const code = feed?.server?.joinCode;
   if (!code) return { ok: false, reason: 'no-code' };
   if (!(await redmInstalled())) return { ok: false, reason: 'no-redm' };
-  const url = (feed.connectUrl || 'redm://connect/cfx.re/join/{code}').replace('{code}', encodeURIComponent(code));
-  if (!url.startsWith('redm://')) return { ok: false, reason: 'bad-url' };
+  const url = policy.connectUrl(code);
+  if (!url) return { ok: false, reason: 'bad-url' };
   await shell.openExternal(url);
   setTimeout(() => win?.minimize(), 1500);
   return { ok: true };
@@ -255,8 +265,8 @@ ipcMain.handle('open', async (_e, which) => {
     launcher: RELEASES,
     join: code ? `https://cfx.re/join/${code}` : null,
   };
-  const url = links[which];
-  if (!url || !url.startsWith('https://')) return false;
+  const url = policy.externalUrl(which, links[which]);
+  if (!url) return false;
   await shell.openExternal(url);
   return true;
 });

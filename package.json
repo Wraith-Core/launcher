@@ -1,7 +1,7 @@
 {
   "name": "wraith-launcher",
   "productName": "Wraith Core",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "لانشر ريد ريفر: آخر التحديثات والدسكورد والدخول للسيرفر بضغطة · Red River launcher",
   "author": "ريد ريفر - Red River",
   "main": "main.js",
@@ -18,6 +18,8 @@
     "executableName": "Wraith Core",
     "files": [
       "main.js",
+      "network-policy.js",
+      "account-link.js",
       "identity.js",
       "updater.js",
       "preload.js",

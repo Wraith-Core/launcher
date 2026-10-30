@@ -430,3 +430,9 @@ mark { background: var(--paper); color: var(--ink); padding: 0 .15em; }
 .plate-btn.is-primary.is-in .in-dot { display: inline-block; }
 .in-dot { display: none; width: .45rem; height: .45rem; background: var(--red); animation: breathe 1.6s ease-in-out infinite; }
 .plate-btn:disabled.is-in { opacity: 1; }
+
+/* Account pairing uses the existing launcher paper/ink controls. */
+.me-link { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; padding-block-start: .4rem; }
+#me-pair-command { flex-basis: 100%; text-align: center; font: 1.1rem/1.7 var(--f-fig); color: var(--paper); border: 1px solid var(--rule); padding: .25rem .5rem; }
+.me-link p { flex-basis: 100%; margin: 0; max-width: 40rem; line-height: 1.7; overflow-wrap: anywhere; }
+.me-link [hidden] { display: none; }

@@ -335,6 +335,27 @@ function renderPresence() {
   $('btn-leave').hidden = presence !== 'in';
 }
 
+let pairCommand = '';
+$('me-link').addEventListener('click', async () => {
+  $('me-link').disabled = true;
+  try {
+    const result = await api.pairStart();
+    if (!result.ok) { toast(launcherText.unavailable); return; }
+    await refreshMe();
+  } finally { $('me-link').disabled = false; }
+});
+$('me-unlink').addEventListener('click', async () => {
+  $('me-unlink').disabled = true;
+  try {
+    const result = await api.pairRemove();
+    if (!result.ok) { toast(launcherText.unlinkFailed); return; }
+    await refreshMe();
+  } finally { $('me-unlink').disabled = false; }
+});
+$('me-copy').addEventListener('click', async () => {
+  if (pairCommand) { await navigator.clipboard.writeText(pairCommand); toast(launcherText.copied); }
+});
+
 function renderMe(m) {
   const box = $('me');
   if (!m?.identity) {
@@ -348,10 +369,22 @@ function renderMe(m) {
   $('me-name').textContent = name;
   const av = $('me-avatar');
   av.replaceChildren(avatar({ name, avatar: m.identity.avatar }).firstChild);
-  $('me-hours').textContent = String(Math.floor((srv.playMinutes || 0) / 60));
+  $('me-hours').textContent = m.state === 'linked' ? String(Math.floor((srv.playMinutes || 0) / 60)) : '—';
   $('me-since').textContent = srv.firstJoin ? new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(srv.firstJoin * 1000)) : '—';
   let line;
-  if (srv.online) line = `داخل السيرفر الحين · ${srv.ping}ms`;
+  const linked = m.state === 'linked';
+  $('me-link').hidden = linked || m.state === 'waiting';
+  $('me-unlink').hidden = !linked && m.state !== 'waiting';
+  $('me-pair-help').hidden = m.state !== 'waiting';
+  $('me-pair-command').hidden = m.state !== 'waiting';
+  $('me-copy').hidden = m.state !== 'waiting';
+  if (m.state === 'waiting') {
+    pairCommand = `/launcher ${m.code}`;
+    $('me-pair-help').textContent = launcherText.pairHelp;
+    $('me-pair-command').textContent = pairCommand;
+  }
+  if (!linked) line = launcherText[m.state] || launcherText.unlinked;
+  else if (srv.online) line = `داخل السيرفر الآن · ${srv.ping}ms`;
   else if (!srv.known) line = 'ما دخلت السيرفر للحين، أول دخول يبدأ عدّاد ساعاتك';
   else if (srv.lastSeen) line = `آخر دخول ${ago(new Date(srv.lastSeen * 1000).toISOString())}`;
   else line = 'غير متصل';
